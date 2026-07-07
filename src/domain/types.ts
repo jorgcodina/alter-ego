@@ -1,4 +1,10 @@
-export type NeedKey = "energy" | "mood" | "health";
+export type NeedKey =
+  | "health"
+  | "energy"
+  | "mood"
+  | "social"
+  | "intellect"
+  | "purpose";
 
 export type NeedValue = number;
 

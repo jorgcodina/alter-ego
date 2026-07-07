@@ -1,13 +1,19 @@
-import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaView, StyleSheet } from "react-native";
 
-import { AppTabs } from "./src/ui/navigation/AppTabs";
+import { LifeScreen } from "./src/ui/screens/LifeScreen";
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      <AppTabs />
-    </NavigationContainer>
+      <LifeScreen />
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  }
+});

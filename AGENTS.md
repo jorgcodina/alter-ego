@@ -14,6 +14,39 @@ Alter Ego es una simulación personal tipo Los Sims / Stardew Valley / Habbo.
 
 Este proyecto se desarrolla con **Specification Driven Development (SDD)**.
 
+Para **CUALQUIER solicitud** debes:
+
+1. Leer `AGENTS.md` (ya cargado).
+2. Leer `.sdd/WORKFLOW.md`.
+3. Leer `.sdd/RULES.md`.
+4. Buscar la Task indicada.
+5. Leer automáticamente las specs referenciadas por la Task.
+
+## Flujo por defecto
+
+Si el usuario pide **crear la siguiente tarea**:
+
+1. Revisa `ROADMAP.md`.
+2. Detecta la siguiente tarea pendiente.
+3. Crea solo el archivo de task correspondiente en `tasks/`.
+4. No implementes código.
+5. Detente y espera aprobación del usuario.
+
+Si el usuario pide **implementar T-XXX**:
+
+1. Lee la task indicada.
+2. Lee automáticamente todos los documentos y specs referenciados por la task.
+3. Identifica inconsistencias, ambigüedades o información faltante.
+4. Antes de escribir código, entrega:
+   - Resumen de objetivo.
+   - Documentos leídos.
+   - Plan de implementación.
+   - Alcance.
+   - Fuera de alcance.
+   - Riesgos o dudas.
+5. Detente y espera aprobación explícita del usuario.
+6. Solo puedes implementar cuando el usuario diga: **"aprobado, implementa"**.
+
 Antes de implementar cualquier cosa, siempre debes leer:
 
 1. `AGENTS.md`
@@ -93,8 +126,9 @@ Debes responder con:
 3. Plan de implementación.
 4. Alcance.
 5. Fuera de alcance.
+6. Riesgos o dudas.
 
-Luego puedes implementar.
+Luego debes detenerte y esperar aprobación explícita antes de modificar archivos.
 
 ---
 
