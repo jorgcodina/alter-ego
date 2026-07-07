@@ -1,0 +1,3 @@
+- [ ] Respeta specs
+- [ ] Sin lógica de negocio en UI
+- [ ] Sin comportamiento no especificado

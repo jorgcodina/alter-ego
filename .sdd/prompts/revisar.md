@@ -1,0 +1,1 @@
+Revisa la implementación contra las specs y la tarea. Busca scope creep.

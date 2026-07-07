@@ -1,0 +1,4 @@
+- [ ] Spec funcional
+- [ ] Spec técnica
+- [ ] Task
+- [ ] Criterios de aceptación

@@ -1,0 +1,1 @@
+Lee AGENTS.md, WORKFLOW.md, RULES.md y las specs antes de implementar. No inventes comportamiento.
