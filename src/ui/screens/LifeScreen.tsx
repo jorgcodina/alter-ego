@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { actionDefinitions, traitDefinitions } from "../../domain";
@@ -8,13 +9,14 @@ import type {
   NeedKey,
   Needs,
   RoomObject,
+  RoomObjectId,
   TraitId,
   TraitState
 } from "../../domain";
 import { useGameStore } from "../../state/useGameStore";
 
 export function LifeScreen() {
-  const [selectedObjectId, setSelectedObjectId] = useState<string | undefined>();
+  const [selectedMedalId, setSelectedMedalId] = useState<string | undefined>();
   const character = useGameStore((state) => state.character);
   const lastEventLog = useGameStore((state) => state.lastEventLog);
   const traitStates = useGameStore((state) => state.traitStates);
@@ -36,6 +38,12 @@ export function LifeScreen() {
             <Text style={styles.characterState}>🙂 Equilibrado</Text>
           </View>
         </View>
+        <AvatarMedalsPanel
+          traitStates={traitStates}
+          roomObjects={roomObjects}
+          selectedMedalId={selectedMedalId}
+          onSelectMedal={setSelectedMedalId}
+        />
       </View>
 
       <View style={styles.section}>
@@ -44,14 +52,6 @@ export function LifeScreen() {
           <NeedBar key={need} need={need} value={value} />
         ))}
       </View>
-
-      <TraitProgressSection traitStates={traitStates} />
-
-      <RoomObjectsSection
-        roomObjects={roomObjects}
-        selectedObjectId={selectedObjectId}
-        onSelectObject={setSelectedObjectId}
-      />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Registrar Evento</Text>
@@ -89,129 +89,196 @@ export function LifeScreen() {
   );
 }
 
-type TraitProgressSectionProps = {
+type AvatarMedalsPanelProps = {
   traitStates: readonly TraitState[];
-};
-
-function TraitProgressSection({ traitStates }: TraitProgressSectionProps) {
-  const visibleTraits = traitStates.filter((traitState) => traitState.isVisible);
-
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Rasgos</Text>
-      {visibleTraits.length > 0 ? (
-        visibleTraits.map((traitState) => (
-          <ProgressRow
-            key={traitState.id}
-            label={getTraitLabel(traitState.id)}
-            progress={traitState.progress}
-            target={traitState.target}
-            isUnlocked={traitState.isUnlocked}
-            detail={formatTraitDetail(traitState)}
-          />
-        ))
-      ) : (
-        <Text style={styles.emptyFeedback}>
-          Registra acciones para descubrir rasgos.
-        </Text>
-      )}
-    </View>
-  );
-}
-
-type RoomObjectsSectionProps = {
   roomObjects: readonly RoomObject[];
-  selectedObjectId: string | undefined;
-  onSelectObject: (objectId: string | undefined) => void;
+  selectedMedalId: string | undefined;
+  onSelectMedal: (medalId: string | undefined) => void;
 };
 
-function RoomObjectsSection({
+function AvatarMedalsPanel({
+  traitStates,
   roomObjects,
-  selectedObjectId,
-  onSelectObject
-}: RoomObjectsSectionProps) {
+  selectedMedalId,
+  onSelectMedal
+}: AvatarMedalsPanelProps) {
+  const visibleTraits = traitStates.filter((traitState) => traitState.isVisible);
   const visibleObjects = roomObjects.filter((roomObject) => roomObject.isVisible);
-  const selectedObject = visibleObjects.find(
-    (roomObject) => roomObject.id === selectedObjectId
+  const selectedTrait = visibleTraits.find(
+    (traitState) => getTraitMedalId(traitState.id) === selectedMedalId
   );
+  const selectedObject = visibleObjects.find(
+    (roomObject) => getObjectMedalId(roomObject.id) === selectedMedalId
+  );
+  const hasVisibleMedals =
+    visibleTraits.length > 0 || visibleObjects.length > 0;
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Objetos</Text>
-      {visibleObjects.length > 0 ? (
-        <View style={styles.objectList}>
-          {visibleObjects.map((roomObject) => (
-            <Pressable
-              key={roomObject.id}
-              accessibilityRole="button"
-              onPress={() =>
-                onSelectObject(
-                  selectedObjectId === roomObject.id ? undefined : roomObject.id
-                )
-              }
-              style={({ pressed }) => [
-                styles.objectButton,
-                roomObject.isUnlocked && styles.objectButtonUnlocked,
-                pressed && styles.actionButtonPressed
-              ]}
-            >
-              <Text style={styles.objectTitle}>{roomObject.label}</Text>
-              <Text style={styles.objectState}>
-                {roomObject.isUnlocked ? "Desbloqueado" : "En progreso"}
-              </Text>
-              <ProgressBar
-                progress={roomObject.progress}
-                target={roomObject.target}
-              />
-            </Pressable>
-          ))}
+    <View style={styles.medalsPanel}>
+      <Text style={styles.smallTitle}>Medallas</Text>
+      {hasVisibleMedals ? (
+        <View style={styles.medalGroups}>
+          {visibleTraits.length > 0 ? (
+            <MedalGroup title="Rasgos">
+              {visibleTraits.map((traitState) => (
+                <MedalButton
+                  key={traitState.id}
+                  label={getTraitLabel(traitState.id)}
+                  emoji={traitEmoji[traitState.id]}
+                  progress={traitState.progress}
+                  target={traitState.target}
+                  isUnlocked={traitState.isUnlocked}
+                  isSelected={
+                    selectedMedalId === getTraitMedalId(traitState.id)
+                  }
+                  onPress={() =>
+                    toggleSelectedMedal(
+                      getTraitMedalId(traitState.id),
+                      selectedMedalId,
+                      onSelectMedal
+                    )
+                  }
+                />
+              ))}
+            </MedalGroup>
+          ) : null}
+
+          {visibleObjects.length > 0 ? (
+            <MedalGroup title="Objetos">
+              {visibleObjects.map((roomObject) => (
+                <MedalButton
+                  key={roomObject.id}
+                  label={roomObject.label}
+                  emoji={objectEmoji[roomObject.id] ?? "🏅"}
+                  progress={roomObject.progress}
+                  target={roomObject.target}
+                  isUnlocked={roomObject.isUnlocked}
+                  isSelected={
+                    selectedMedalId === getObjectMedalId(roomObject.id)
+                  }
+                  onPress={() =>
+                    toggleSelectedMedal(
+                      getObjectMedalId(roomObject.id),
+                      selectedMedalId,
+                      onSelectMedal
+                    )
+                  }
+                />
+              ))}
+            </MedalGroup>
+          ) : null}
         </View>
       ) : (
         <Text style={styles.emptyFeedback}>
-          Los objetos aparecerán cuando un rasgo empiece a tomar forma.
+          Registra acciones para descubrir medallas.
         </Text>
       )}
+
+      {selectedTrait ? (
+        <MedalDetail
+          title={getTraitLabel(selectedTrait.id)}
+          progress={selectedTrait.progress}
+          target={selectedTrait.target}
+          isUnlocked={selectedTrait.isUnlocked}
+          detail={formatTraitDetail(selectedTrait)}
+        />
+      ) : null}
 
       {selectedObject ? (
-        <View style={styles.objectDetail}>
-          <Text style={styles.smallTitle}>{selectedObject.label}</Text>
-          <Text style={styles.stateText}>
-            Progreso: {selectedObject.progress}/{selectedObject.target}
-          </Text>
-          <Text style={styles.stateText}>
-            Faltan {selectedObject.daysRemaining} para completarlo.
-          </Text>
-        </View>
+        <MedalDetail
+          title={selectedObject.label}
+          progress={selectedObject.progress}
+          target={selectedObject.target}
+          isUnlocked={selectedObject.isUnlocked}
+          detail={`Faltan ${selectedObject.daysRemaining} para completarlo.`}
+        />
       ) : null}
     </View>
   );
 }
 
-type ProgressRowProps = {
+type MedalGroupProps = {
+  title: string;
+  children: ReactNode;
+};
+
+function MedalGroup({ title, children }: MedalGroupProps) {
+  return (
+    <View style={styles.medalGroup}>
+      <Text style={styles.medalGroupTitle}>{title}</Text>
+      <View style={styles.medalList}>{children}</View>
+    </View>
+  );
+}
+
+type MedalButtonProps = {
   label: string;
+  emoji: string;
+  progress: number;
+  target: number;
+  isUnlocked: boolean;
+  isSelected: boolean;
+  onPress: () => void;
+};
+
+function MedalButton({
+  label,
+  emoji,
+  progress,
+  target,
+  isUnlocked,
+  isSelected,
+  onPress
+}: MedalButtonProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.medalButton,
+        isUnlocked && styles.medalButtonUnlocked,
+        isSelected && styles.medalButtonSelected,
+        pressed && styles.actionButtonPressed
+      ]}
+    >
+      <Text style={styles.medalEmoji}>{emoji}</Text>
+      <Text numberOfLines={1} style={styles.medalLabel}>
+        {label}
+      </Text>
+      <Text style={styles.medalProgress}>
+        {progress}/{target}
+      </Text>
+      <ProgressBar progress={progress} target={target} />
+    </Pressable>
+  );
+}
+
+type MedalDetailProps = {
+  title: string;
   progress: number;
   target: number;
   isUnlocked: boolean;
   detail: string;
 };
 
-function ProgressRow({
-  label,
+function MedalDetail({
+  title,
   progress,
   target,
   isUnlocked,
   detail
-}: ProgressRowProps) {
+}: MedalDetailProps) {
   return (
-    <View style={styles.progressBlock}>
-      <View style={styles.needHeader}>
-        <Text style={styles.needLabel}>{label}</Text>
-        <Text style={styles.needValue}>
-          {progress}/{target}
-        </Text>
-      </View>
+    <View style={styles.medalDetail}>
+      <Text style={styles.objectTitle}>{title}</Text>
+      <Text style={styles.objectState}>
+        {isUnlocked ? "Desbloqueado" : "En progreso"}
+      </Text>
       <ProgressBar progress={progress} target={target} />
-      <Text style={styles.stateText}>{isUnlocked ? "Activo" : detail}</Text>
+      <Text style={styles.stateText}>
+        Progreso: {progress}/{target}
+      </Text>
+      <Text style={styles.stateText}>{detail}</Text>
     </View>
   );
 }
@@ -340,6 +407,38 @@ function formatTraitDetail(traitState: TraitState): string {
   return `Faltan ${traitState.daysRemaining} eventos.`;
 }
 
+function getTraitMedalId(traitId: TraitId): string {
+  return `trait-${traitId}`;
+}
+
+function getObjectMedalId(objectId: RoomObjectId): string {
+  return `object-${objectId}`;
+}
+
+function toggleSelectedMedal(
+  medalId: string,
+  selectedMedalId: string | undefined,
+  onSelectMedal: (medalId: string | undefined) => void
+) {
+  onSelectMedal(selectedMedalId === medalId ? undefined : medalId);
+}
+
+const traitEmoji: Record<TraitId, string> = {
+  reader: "📚",
+  active: "💪",
+  former_smoker: "🏅",
+  constant: "🛠️",
+  sociable: "🤝"
+};
+
+const objectEmoji: Record<RoomObjectId, string> = {
+  library: "📚",
+  bicycle: "🚲",
+  former_smoker_trophy: "🏆",
+  project_desk: "🧰",
+  social_table: "🪑"
+};
+
 const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: "#f3f4f6",
@@ -428,6 +527,68 @@ const styles = StyleSheet.create({
   mutedText: {
     color: "#6b7280",
     fontSize: 15
+  },
+  medalButton: {
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
+    borderColor: "#9ca3af",
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 5,
+    minHeight: 112,
+    padding: 8,
+    width: 96
+  },
+  medalButtonSelected: {
+    borderColor: "#111827",
+    borderWidth: 2
+  },
+  medalButtonUnlocked: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#047857"
+  },
+  medalDetail: {
+    borderColor: "#d1d5db",
+    borderTopWidth: 1,
+    gap: 7,
+    paddingTop: 12
+  },
+  medalEmoji: {
+    fontSize: 28
+  },
+  medalGroup: {
+    gap: 8
+  },
+  medalGroupTitle: {
+    color: "#374151",
+    fontSize: 14,
+    fontWeight: "800"
+  },
+  medalGroups: {
+    gap: 14
+  },
+  medalLabel: {
+    color: "#111827",
+    fontSize: 12,
+    fontWeight: "800",
+    maxWidth: "100%",
+    textAlign: "center"
+  },
+  medalList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  medalProgress: {
+    color: "#374151",
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  medalsPanel: {
+    borderColor: "#d1d5db",
+    borderTopWidth: 1,
+    gap: 12,
+    paddingTop: 14
   },
   needBlock: {
     gap: 6

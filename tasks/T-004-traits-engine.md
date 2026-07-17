@@ -67,6 +67,8 @@ Implementar el motor de rasgos de Alter Ego para calcular progreso, desbloquear 
 - Ejecutar `recalculateTraits()` despues de registrar una accion.
 - Mantener toda la logica de rasgos fuera de la UI.
 - Mostrar en la UI existente informacion minima de rasgos y objetos desbloqueados solo si es necesario para verificar la funcionalidad.
+- Mostrar rasgos y objetos visibles como medallas dentro de la seccion principal del avatar.
+- Permitir seleccionar una medalla para ver el detalle de progreso.
 - Mostrar el Trofeo Exfumador como insignia o medalla con barra de progreso.
 - Permitir seleccionar el Trofeo Exfumador para ver el detalle de progreso y dias restantes.
 
@@ -129,6 +131,8 @@ Implementar el motor de rasgos de Alter Ego para calcular progreso, desbloquear 
 - El Trofeo Exfumador se muestra bloqueado/en progreso desde 1 dia calendario sin fumar despues de un evento previo de fumar.
 - El Trofeo Exfumador se muestra como insignia o medalla con barra de progreso.
 - Al seleccionar el Trofeo Exfumador, el usuario puede ver detalle de progreso y dias restantes.
+- Rasgos y objetos visibles se muestran como medallas dentro de la seccion principal del avatar.
+- Al seleccionar una medalla, el usuario puede ver el detalle de progreso.
 - Constante se desbloquea con 3 eventos de proyecto personal.
 - Constante se muestra desde el primer evento de proyecto personal.
 - Constante reinicia progreso y se pierde si pasan 7 dias calendario sin eventos de proyecto personal.
@@ -167,6 +171,7 @@ Implementar el motor de rasgos de Alter Ego para calcular progreso, desbloquear 
 - Los objetos asociados se desbloquean al desbloquear sus rasgos.
 - Los objetos asociados se vuelven a bloquear si se pierde el rasgo correspondiente.
 - El Trofeo Exfumador muestra progreso hacia 30 dias y detalle al seleccionarlo.
+- Rasgos y objetos se muestran como medallas dentro del panel principal del avatar.
 - Zustand sostiene TraitStates y RoomObjects.
 - Registrar una accion recalcula rasgos sin mover reglas de juego a la UI.
 - No hay identidad funcional, diario funcional ni persistencia.

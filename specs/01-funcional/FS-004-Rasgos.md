@@ -8,6 +8,8 @@ Representar comportamiento sostenido.
 
 Los rasgos aparecen como bloqueados/en progreso desde el primer evento relevante.
 Los rasgos muestran progreso hacia su desbloqueo.
+Los rasgos y objetos visibles se muestran como medallas dentro de la seccion principal del avatar.
+Al seleccionar una medalla, el usuario puede ver el detalle de su progreso.
 Lector, Activo, Constante y Sociable reinician progreso si pasan 7 dias calendario sin eventos relevantes.
 Si un rasgo desbloqueado se queda 7 dias calendario sin eventos relevantes, el rasgo se pierde y puede recuperarse volviendo a completar su progreso.
 Los objetos asociados se bloquean o desbloquean junto con el rasgo correspondiente.
