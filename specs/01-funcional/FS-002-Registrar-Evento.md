@@ -7,7 +7,6 @@ Permitir registrar acciones reales rápidamente.
 ## Acciones MVP
 
 - Fumé un cigarro
-- No fumé hoy
 - Caminé
 - Hice ejercicio intenso
 - Dormí bien

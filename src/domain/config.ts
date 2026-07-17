@@ -1,4 +1,11 @@
-import type { ActionDefinition, Character, EventDefinition, Needs } from "./types";
+import type {
+  ActionDefinition,
+  Character,
+  EventDefinition,
+  Needs,
+  RoomObjectDefinition,
+  TraitDefinition
+} from "./types";
 
 export const initialNeeds: Needs = {
   health: 50,
@@ -19,11 +26,6 @@ export const actionDefinitions: readonly ActionDefinition[] = [
     id: "smoked_cigarette",
     label: "Fumé un cigarro",
     eventId: "smoked_cigarette_registered"
-  },
-  {
-    id: "did_not_smoke_today",
-    label: "No fumé hoy",
-    eventId: "did_not_smoke_today_registered"
   },
   {
     id: "walked",
@@ -86,6 +88,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "smoked_cigarette_registered",
     actionId: "smoked_cigarette",
+    traitCategories: ["smoking"],
     effects: [
       { need: "health", delta: -12 },
       { need: "energy", delta: -4 },
@@ -94,17 +97,9 @@ export const eventDefinitions: readonly EventDefinition[] = [
     ]
   },
   {
-    id: "did_not_smoke_today_registered",
-    actionId: "did_not_smoke_today",
-    effects: [
-      { need: "health", delta: 10 },
-      { need: "mood", delta: 4 },
-      { need: "purpose", delta: 5 }
-    ]
-  },
-  {
     id: "walked_registered",
     actionId: "walked",
+    traitCategories: ["physical"],
     effects: [
       { need: "health", delta: 8 },
       { need: "energy", delta: -5 },
@@ -114,6 +109,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "intense_exercise_registered",
     actionId: "intense_exercise",
+    traitCategories: ["physical"],
     effects: [
       { need: "health", delta: 14 },
       { need: "energy", delta: -14 },
@@ -143,6 +139,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "read_or_studied_registered",
     actionId: "read_or_studied",
+    traitCategories: ["learning"],
     effects: [
       { need: "intellect", delta: 8 },
       { need: "energy", delta: -2 },
@@ -153,6 +150,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "advanced_personal_project_registered",
     actionId: "advanced_personal_project",
+    traitCategories: ["project"],
     effects: [
       { need: "purpose", delta: 10 },
       { need: "intellect", delta: 4 },
@@ -163,6 +161,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "spent_time_with_family_registered",
     actionId: "spent_time_with_family",
+    traitCategories: ["social"],
     effects: [
       { need: "social", delta: 10 },
       { need: "mood", delta: 10 },
@@ -172,6 +171,7 @@ export const eventDefinitions: readonly EventDefinition[] = [
   {
     id: "saw_friends_or_partner_registered",
     actionId: "saw_friends_or_partner",
+    traitCategories: ["social"],
     effects: [
       { need: "social", delta: 12 },
       { need: "mood", delta: 12 },
@@ -204,5 +204,80 @@ export const eventDefinitions: readonly EventDefinition[] = [
       { need: "energy", delta: -4 },
       { need: "mood", delta: -2 }
     ]
+  }
+];
+
+export const traitDefinitions: readonly TraitDefinition[] = [
+  {
+    id: "reader",
+    label: "Lector",
+    target: 3,
+    roomObjectId: "library",
+    eventCategories: ["learning"],
+    inactivityResetDays: 7,
+    kind: "event_count"
+  },
+  {
+    id: "active",
+    label: "Activo",
+    target: 3,
+    roomObjectId: "bicycle",
+    eventCategories: ["physical"],
+    inactivityResetDays: 7,
+    kind: "event_count"
+  },
+  {
+    id: "former_smoker",
+    label: "Exfumador",
+    target: 30,
+    roomObjectId: "former_smoker_trophy",
+    eventCategories: ["smoking"],
+    kind: "days_without_event"
+  },
+  {
+    id: "constant",
+    label: "Constante",
+    target: 3,
+    roomObjectId: "project_desk",
+    eventCategories: ["project"],
+    inactivityResetDays: 7,
+    kind: "event_count"
+  },
+  {
+    id: "sociable",
+    label: "Sociable",
+    target: 3,
+    roomObjectId: "social_table",
+    eventCategories: ["social"],
+    inactivityResetDays: 7,
+    kind: "event_count"
+  }
+];
+
+export const roomObjectDefinitions: readonly RoomObjectDefinition[] = [
+  {
+    id: "library",
+    traitId: "reader",
+    label: "Biblioteca"
+  },
+  {
+    id: "bicycle",
+    traitId: "active",
+    label: "Bicicleta"
+  },
+  {
+    id: "former_smoker_trophy",
+    traitId: "former_smoker",
+    label: "Trofeo Exfumador"
+  },
+  {
+    id: "project_desk",
+    traitId: "constant",
+    label: "Mesa de Proyectos"
+  },
+  {
+    id: "social_table",
+    traitId: "sociable",
+    label: "Mesa Social"
   }
 ];

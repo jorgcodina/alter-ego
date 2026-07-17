@@ -2,7 +2,9 @@ export {
   actionDefinitions,
   eventDefinitions,
   initialCharacter,
-  initialNeeds
+  initialNeeds,
+  roomObjectDefinitions,
+  traitDefinitions
 } from "./config";
 export {
   applyEffectsToNeeds,
@@ -10,7 +12,9 @@ export {
   applyEvent,
   clampNeedValue,
   createEventLog,
+  deriveRoomObjects,
   findEventDefinitionForAction,
+  recalculateTraitStates,
   resolveCharacterState
 } from "./engine";
 export type {
@@ -22,5 +26,12 @@ export type {
   NeedEffect,
   NeedKey,
   Needs,
-  NeedValue
+  NeedValue,
+  RoomObject,
+  RoomObjectDefinition,
+  RoomObjectId,
+  TraitDefinition,
+  TraitEventCategory,
+  TraitId,
+  TraitState
 } from "./types";

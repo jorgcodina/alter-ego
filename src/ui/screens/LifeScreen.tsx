@@ -1,12 +1,24 @@
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { actionDefinitions } from "../../domain";
-import type { AppliedEffect, EventLog, NeedKey, Needs } from "../../domain";
+import { actionDefinitions, traitDefinitions } from "../../domain";
+import type {
+  AppliedEffect,
+  EventLog,
+  NeedKey,
+  Needs,
+  RoomObject,
+  TraitId,
+  TraitState
+} from "../../domain";
 import { useGameStore } from "../../state/useGameStore";
 
 export function LifeScreen() {
+  const [selectedObjectId, setSelectedObjectId] = useState<string | undefined>();
   const character = useGameStore((state) => state.character);
   const lastEventLog = useGameStore((state) => state.lastEventLog);
+  const traitStates = useGameStore((state) => state.traitStates);
+  const roomObjects = useGameStore((state) => state.roomObjects);
   const registerAction = useGameStore((state) => state.registerAction);
 
   const lastAction = lastEventLog
@@ -32,6 +44,14 @@ export function LifeScreen() {
           <NeedBar key={need} need={need} value={value} />
         ))}
       </View>
+
+      <TraitProgressSection traitStates={traitStates} />
+
+      <RoomObjectsSection
+        roomObjects={roomObjects}
+        selectedObjectId={selectedObjectId}
+        onSelectObject={setSelectedObjectId}
+      />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Registrar Evento</Text>
@@ -66,6 +86,148 @@ export function LifeScreen() {
         )}
       </View>
     </ScrollView>
+  );
+}
+
+type TraitProgressSectionProps = {
+  traitStates: readonly TraitState[];
+};
+
+function TraitProgressSection({ traitStates }: TraitProgressSectionProps) {
+  const visibleTraits = traitStates.filter((traitState) => traitState.isVisible);
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Rasgos</Text>
+      {visibleTraits.length > 0 ? (
+        visibleTraits.map((traitState) => (
+          <ProgressRow
+            key={traitState.id}
+            label={getTraitLabel(traitState.id)}
+            progress={traitState.progress}
+            target={traitState.target}
+            isUnlocked={traitState.isUnlocked}
+            detail={formatTraitDetail(traitState)}
+          />
+        ))
+      ) : (
+        <Text style={styles.emptyFeedback}>
+          Registra acciones para descubrir rasgos.
+        </Text>
+      )}
+    </View>
+  );
+}
+
+type RoomObjectsSectionProps = {
+  roomObjects: readonly RoomObject[];
+  selectedObjectId: string | undefined;
+  onSelectObject: (objectId: string | undefined) => void;
+};
+
+function RoomObjectsSection({
+  roomObjects,
+  selectedObjectId,
+  onSelectObject
+}: RoomObjectsSectionProps) {
+  const visibleObjects = roomObjects.filter((roomObject) => roomObject.isVisible);
+  const selectedObject = visibleObjects.find(
+    (roomObject) => roomObject.id === selectedObjectId
+  );
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Objetos</Text>
+      {visibleObjects.length > 0 ? (
+        <View style={styles.objectList}>
+          {visibleObjects.map((roomObject) => (
+            <Pressable
+              key={roomObject.id}
+              accessibilityRole="button"
+              onPress={() =>
+                onSelectObject(
+                  selectedObjectId === roomObject.id ? undefined : roomObject.id
+                )
+              }
+              style={({ pressed }) => [
+                styles.objectButton,
+                roomObject.isUnlocked && styles.objectButtonUnlocked,
+                pressed && styles.actionButtonPressed
+              ]}
+            >
+              <Text style={styles.objectTitle}>{roomObject.label}</Text>
+              <Text style={styles.objectState}>
+                {roomObject.isUnlocked ? "Desbloqueado" : "En progreso"}
+              </Text>
+              <ProgressBar
+                progress={roomObject.progress}
+                target={roomObject.target}
+              />
+            </Pressable>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.emptyFeedback}>
+          Los objetos aparecerán cuando un rasgo empiece a tomar forma.
+        </Text>
+      )}
+
+      {selectedObject ? (
+        <View style={styles.objectDetail}>
+          <Text style={styles.smallTitle}>{selectedObject.label}</Text>
+          <Text style={styles.stateText}>
+            Progreso: {selectedObject.progress}/{selectedObject.target}
+          </Text>
+          <Text style={styles.stateText}>
+            Faltan {selectedObject.daysRemaining} para completarlo.
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+type ProgressRowProps = {
+  label: string;
+  progress: number;
+  target: number;
+  isUnlocked: boolean;
+  detail: string;
+};
+
+function ProgressRow({
+  label,
+  progress,
+  target,
+  isUnlocked,
+  detail
+}: ProgressRowProps) {
+  return (
+    <View style={styles.progressBlock}>
+      <View style={styles.needHeader}>
+        <Text style={styles.needLabel}>{label}</Text>
+        <Text style={styles.needValue}>
+          {progress}/{target}
+        </Text>
+      </View>
+      <ProgressBar progress={progress} target={target} />
+      <Text style={styles.stateText}>{isUnlocked ? "Activo" : detail}</Text>
+    </View>
+  );
+}
+
+type ProgressBarProps = {
+  progress: number;
+  target: number;
+};
+
+function ProgressBar({ progress, target }: ProgressBarProps) {
+  const percentage = target > 0 ? Math.min((progress / target) * 100, 100) : 0;
+
+  return (
+    <View style={styles.barTrack}>
+      <View style={[styles.barFill, { width: `${percentage}%` }]} />
+    </View>
   );
 }
 
@@ -161,6 +323,21 @@ function formatDelta(delta: number): string {
 
 function needEntries(needs: Needs): Array<[NeedKey, number]> {
   return Object.entries(needs) as Array<[NeedKey, number]>;
+}
+
+function getTraitLabel(traitId: TraitId): string {
+  return (
+    traitDefinitions.find((traitDefinition) => traitDefinition.id === traitId)
+      ?.label ?? "Rasgo"
+  );
+}
+
+function formatTraitDetail(traitState: TraitState): string {
+  if (traitState.id === "former_smoker") {
+    return `Faltan ${traitState.daysRemaining} días sin fumar.`;
+  }
+
+  return `Faltan ${traitState.daysRemaining} eventos.`;
 }
 
 const styles = StyleSheet.create({
@@ -268,6 +445,39 @@ const styles = StyleSheet.create({
   needValue: {
     color: "#111827",
     fontSize: 18
+  },
+  objectButton: {
+    backgroundColor: "#f9fafb",
+    borderColor: "#9ca3af",
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 8,
+    padding: 12
+  },
+  objectButtonUnlocked: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#047857"
+  },
+  objectDetail: {
+    borderColor: "#d1d5db",
+    borderTopWidth: 1,
+    gap: 6,
+    paddingTop: 12
+  },
+  objectList: {
+    gap: 10
+  },
+  objectState: {
+    color: "#374151",
+    fontSize: 14
+  },
+  objectTitle: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "800"
+  },
+  progressBlock: {
+    gap: 8
   },
   section: {
     backgroundColor: "#ffffff",
